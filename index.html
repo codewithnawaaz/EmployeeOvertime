@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Employee Overtime Details</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        background-color: #f4f4f9;
+        margin: 0;
+        padding: 0;
+      }
+
+      h1 {
+        text-align: center;
+        color: #333;
+        margin-top: 20px;
+      }
+
+      .container {
+        width: 80%;
+        margin: 0 auto;
+        background-color: #fff;
+        padding: 30px;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        border-radius: 10px;
+        margin-top: 30px;
+      }
+
+      input[type="number"] {
+        padding: 10px;
+        font-size: 16px;
+        border: 1px solid #ddd;
+        border-radius: 5px;
+        width: 100%;
+        max-width: 250px;
+        box-sizing: border-box;
+      }
+
+      button {
+        padding: 10px 20px;
+        font-size: 16px;
+        border: none;
+        background-color: #f31505;
+        color: white;
+        cursor: pointer;
+        border-radius: 5px;
+        margin-left: 10px;
+        display: inline-block;
+      }
+
+      button:hover {
+        background-color: #4560a0;
+      }
+
+      table {
+        width: 100%;
+        margin-top: 30px;
+        border-collapse: collapse;
+        text-align: center;
+      }
+
+      table th,
+      table td {
+        padding: 12px 15px;
+        border: 1px solid #ddd;
+        text-align: center;
+      }
+
+      table th {
+        background-color: #afa04c;
+        color: white;
+      }
+
+      table td {
+        background-color: #f9f9f9;
+      }
+
+      .error-message {
+        text-align: center;
+        color: red;
+        font-size: 18px;
+        margin-top: 20px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <h1>Overtime HC-03</h1>
+      <div>
+        <input type="number" id="employeeID" placeholder="Enter Employee ID" />
+        <button onclick="getEmployeeDetails()">Search</button>
+      </div>
+
+      <div id="errorMessage" class="error-message"></div>
+
+      <table id="summaryTable">
+        <thead>
+          <tr>
+            <th>No</th>
+            <th>Name</th>
+            <th>ID</th>
+            <th>Total O.T</th>
+            <th>Total Day</th>
+          </tr>
+        </thead>
+        <tbody>
+          <!-- Summary data will be displayed here -->
+        </tbody>
+      </table>
+
+      <h2 style="text-align: center; margin-top: 40px">
+        Daily Overtime Details
+      </h2>
+      <table id="dailyTable">
+        <thead>
+          <tr>
+            <th>Date</th>
+            <th>Overtime Hours</th>
+          </tr>
+        </thead>
+        <tbody>
+          <!-- Daily details will be displayed here -->
+        </tbody>
+      </table>
+    </div>
+
+    <script>
+      // Track searches based on IP (localStorage implementation)
+      function trackSearches(empID) {
+        const searches = JSON.parse(localStorage.getItem("searches")) || {};
+        const userIP = "static_ip_placeholder"; // Replace with actual IP retrieval if available
+
+        if (!searches[userIP]) {
+          searches[userIP] = [];
+        }
+
+        if (!searches[userIP].includes(empID)) {
+          if (searches[userIP].length >= 2) {
+            return false; // Limit reached
+          }
+          searches[userIP].push(empID); // Add new ID
+        }
+
+        localStorage.setItem("searches", JSON.stringify(searches));
+        return true;
+      }
+
+      async function fetchEmployeeData() {
+        const response = await fetch("data.json"); // Fetch data.json
+        return response.json();
+      }
+
+      async function getEmployeeDetails() {
+        const empID = parseInt(document.getElementById("employeeID").value);
+
+        if (!empID) {
+          document.getElementById("errorMessage").innerHTML =
+            "Please enter an Employee ID!";
+          clearTables();
+          return;
+        }
+
+        // Check search limit
+        if (!trackSearches(empID)) {
+          document.getElementById("errorMessage").innerHTML =
+            "You have exceeded the limit of 2 searches!";
+          clearTables();
+          return;
+        }
+
+        const employees = await fetchEmployeeData();
+        const result = employees.find((emp) => emp.ID === empID);
+
+        if (result) {
+          displaySummaryData(result);
+          displayDailyData(result);
+          document.getElementById("errorMessage").innerHTML = ""; // Clear error message
+        } else {
+          document.getElementById("errorMessage").innerHTML =
+            "Employee not found!";
+          clearTables();
+        }
+      }
+
+      function displaySummaryData(employee) {
+        const tableBody = document
+          .getElementById("summaryTable")
+          .getElementsByTagName("tbody")[0];
+        tableBody.innerHTML = "";
+
+        const row = tableBody.insertRow();
+        row.insertCell(0).textContent = employee["No "];
+        row.insertCell(1).textContent = employee.Name;
+        row.insertCell(2).textContent = employee.ID;
+        row.insertCell(3).textContent = employee["Total O.T"];
+        row.insertCell(4).textContent = employee["Total Day"];
+      }
+
+      function displayDailyData(employee) {
+        const tableBody = document
+          .getElementById("dailyTable")
+          .getElementsByTagName("tbody")[0];
+        tableBody.innerHTML = "";
+
+        Object.entries(employee)
+          .filter(
+            ([key]) => key.includes("November") || key.includes("December")
+          )
+          .forEach(([date, hours]) => {
+            const row = tableBody.insertRow();
+            row.insertCell(0).textContent = date;
+            row.insertCell(1).textContent = hours;
+          });
+      }
+
+      function clearTables() {
+        document
+          .getElementById("summaryTable")
+          .getElementsByTagName("tbody")[0].innerHTML = "";
+        document
+          .getElementById("dailyTable")
+          .getElementsByTagName("tbody")[0].innerHTML = "";
+      }
+    </script>
+  </body>
+</html>
