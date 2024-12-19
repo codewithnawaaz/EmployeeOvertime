@@ -16,21 +16,30 @@
         text-align: center;
         color: #333;
         margin-top: 20px;
+        font-size: 1.8rem;
+      }
+
+      h2 {
+        text-align: center;
+        color: #555;
+        margin-top: 40px;
+        font-size: 1.5rem;
       }
 
       .container {
-        width: 80%;
+        width: 90%;
+        max-width: 1200px;
         margin: 0 auto;
         background-color: #fff;
-        padding: 30px;
+        padding: 20px;
         box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
         border-radius: 10px;
-        margin-top: 30px;
+        margin-top: 20px;
       }
 
       input[type="number"] {
-        padding: 10px;
-        font-size: 16px;
+        padding: 8px;
+        font-size: 14px;
         border: 1px solid #ddd;
         border-radius: 5px;
         width: 100%;
@@ -39,38 +48,41 @@
       }
 
       button {
-        padding: 10px 20px;
-        font-size: 16px;
+        padding: 8px 16px;
+        font-size: 14px;
         border: none;
-        background-color: #f31505;
+        background-color: #4caf50;
         color: white;
         cursor: pointer;
         border-radius: 5px;
         margin-left: 10px;
         display: inline-block;
+        transition: background-color 0.3s ease;
       }
 
       button:hover {
-        background-color: #4560a0;
+        background-color: #45a049;
       }
 
       table {
         width: 100%;
-        margin-top: 30px;
+        margin-top: 20px;
         border-collapse: collapse;
         text-align: center;
+        font-size: 0.9rem;
       }
 
       table th,
       table td {
-        padding: 12px 15px;
+        padding: 10px;
         border: 1px solid #ddd;
         text-align: center;
       }
 
       table th {
-        background-color: #afa04c;
+        background-color: #4caf50;
         color: white;
+        font-size: 0.95rem;
       }
 
       table td {
@@ -80,15 +92,53 @@
       .error-message {
         text-align: center;
         color: red;
-        font-size: 18px;
+        font-size: 1rem;
         margin-top: 20px;
+      }
+
+      .input-container {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        margin-top: 20px;
+        gap: 10px;
+      }
+
+      .input-container input {
+        margin: 0;
+      }
+
+      @media (max-width: 768px) {
+        .container {
+          width: 95%;
+        }
+
+        h1,
+        h2 {
+          font-size: 1.5rem;
+        }
+
+        button {
+          font-size: 12px;
+        }
+
+        input[type="number"] {
+          font-size: 12px;
+          padding: 6px;
+        }
+
+        table th,
+        table td {
+          padding: 8px;
+          font-size: 0.8rem;
+        }
       }
     </style>
   </head>
   <body>
     <div class="container">
       <h1>Overtime HC-03</h1>
-      <div>
+      <div class="input-container">
         <input type="number" id="employeeID" placeholder="Enter Employee ID" />
         <button onclick="getEmployeeDetails()">Search</button>
       </div>
@@ -110,9 +160,7 @@
         </tbody>
       </table>
 
-      <h2 style="text-align: center; margin-top: 40px">
-        Daily Overtime Details
-      </h2>
+      <h2>Daily Overtime Details</h2>
       <table id="dailyTable">
         <thead>
           <tr>
@@ -127,7 +175,11 @@
     </div>
 
     <script>
-      // Track searches based on IP (localStorage implementation)
+      async function fetchEmployeeData() {
+        const response = await fetch("data.json"); // Fetch data.json
+        return response.json();
+      }
+
       function trackSearches(empID) {
         const searches = JSON.parse(localStorage.getItem("searches")) || {};
         const userIP = "static_ip_placeholder"; // Replace with actual IP retrieval if available
@@ -147,11 +199,6 @@
         return true;
       }
 
-      async function fetchEmployeeData() {
-        const response = await fetch("data.json"); // Fetch data.json
-        return response.json();
-      }
-
       async function getEmployeeDetails() {
         const empID = parseInt(document.getElementById("employeeID").value);
 
@@ -162,7 +209,6 @@
           return;
         }
 
-        // Check search limit
         if (!trackSearches(empID)) {
           document.getElementById("errorMessage").innerHTML =
             "You have exceeded the limit of 2 searches!";
@@ -176,7 +222,7 @@
         if (result) {
           displaySummaryData(result);
           displayDailyData(result);
-          document.getElementById("errorMessage").innerHTML = ""; // Clear error message
+          document.getElementById("errorMessage").innerHTML = "";
         } else {
           document.getElementById("errorMessage").innerHTML =
             "Employee not found!";
