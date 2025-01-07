@@ -4,6 +4,10 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Employee Overtime Details</title>
+    <!-- Include jsPDF library -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <!-- Include jsPDF AutoTable plugin -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js"></script>
     <style>
       body {
         font-family: Arial, sans-serif;
@@ -141,6 +145,7 @@
       <div class="input-container">
         <input type="number" id="employeeID" placeholder="Enter Employee ID" />
         <button onclick="getEmployeeDetails()">Search</button>
+        <button onclick="downloadPDF()">Download PDF</button>
       </div>
 
       <div id="errorMessage" class="error-message"></div>
@@ -268,6 +273,115 @@
         document
           .getElementById("dailyTable")
           .getElementsByTagName("tbody")[0].innerHTML = "";
+      }
+      function downloadPDF() {
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF();
+        const pageMargin = 20;
+
+        // Check if there is data in the summary table
+        const summaryTableRows = document.querySelectorAll(
+          "#summaryTable tbody tr"
+        );
+        if (summaryTableRows.length === 0) {
+          alert("No data to download! Please search for an employee first.");
+          return;
+        }
+
+        doc.setFontSize(16);
+        doc.text("Employee Overtime Details", pageMargin, pageMargin);
+
+        // Summary Table
+        doc.setFontSize(12);
+        doc.text("Summary", pageMargin, pageMargin + 10);
+        let summaryData = [];
+        summaryTableRows.forEach((row) => {
+          const rowData = [];
+          row
+            .querySelectorAll("td")
+            .forEach((cell) => rowData.push(cell.textContent));
+          summaryData.push(rowData);
+        });
+
+        // Set column widths explicitly
+        const columnWidths = [20, 50, 40, 40, 40];
+
+        doc.autoTable({
+          startY: pageMargin + 20,
+          head: [["No", "Name", "ID", "Total O.T", "Total Day"]],
+          body: summaryData,
+          columnStyles: {
+            0: { cellWidth: columnWidths[0] },
+            1: { cellWidth: columnWidths[1] },
+            2: { cellWidth: columnWidths[2] },
+            3: { cellWidth: columnWidths[3] },
+            4: { cellWidth: columnWidths[4] },
+          },
+          theme: "grid",
+          tableWidth: "auto",
+          margin: { top: pageMargin + 10 },
+        });
+
+        const pageHeight = doc.internal.pageSize.height;
+        let currentY = doc.lastAutoTable.finalY;
+
+        // Add Daily Overtime Details (check for space)
+        const dailyTableRows = document.querySelectorAll(
+          "#dailyTable tbody tr"
+        );
+        if (dailyTableRows.length > 0) {
+          if (currentY < pageHeight - 40) {
+            doc.setFontSize(12);
+            doc.text("Daily Overtime Details", pageMargin, currentY + 10);
+            let dailyData = [];
+            dailyTableRows.forEach((row) => {
+              const rowData = [];
+              row
+                .querySelectorAll("td")
+                .forEach((cell) => rowData.push(cell.textContent));
+              dailyData.push(rowData);
+            });
+
+            doc.autoTable({
+              startY: currentY + 20,
+              head: [["Date", "Overtime Hours"]],
+              body: dailyData,
+              columnStyles: {
+                0: { cellWidth: 50 },
+                1: { cellWidth: 90 },
+              },
+              theme: "grid",
+              margin: { top: currentY + 10 },
+            });
+          } else {
+            doc.addPage();
+            doc.setFontSize(12);
+            doc.text("Daily Overtime Details", pageMargin, pageMargin + 10);
+            let dailyData = [];
+            dailyTableRows.forEach((row) => {
+              const rowData = [];
+              row
+                .querySelectorAll("td")
+                .forEach((cell) => rowData.push(cell.textContent));
+              dailyData.push(rowData);
+            });
+
+            doc.autoTable({
+              startY: pageMargin + 20,
+              head: [["Date", "Overtime Hours"]],
+              body: dailyData,
+              columnStyles: {
+                0: { cellWidth: 50 },
+                1: { cellWidth: 90 },
+              },
+              theme: "grid",
+              margin: { top: pageMargin + 10 },
+            });
+          }
+        }
+
+        // Save the generated PDF
+        doc.save("Time_Sheet.pdf");
       }
     </script>
   </body>
