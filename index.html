@@ -203,37 +203,68 @@
         localStorage.setItem("searches", JSON.stringify(searches));
         return true;
       }
+      function getEmployeeDetails() {
+        // Create the popup container
+        const popup = document.createElement("div");
+        popup.style.position = "fixed";
+        popup.style.top = "50%";
+        popup.style.left = "50%";
+        popup.style.transform = "translate(-50%, -50%)";
+        popup.style.backgroundColor = "#fff";
+        popup.style.padding = "20px";
+        popup.style.border = "1px solid #ccc";
+        popup.style.boxShadow = "0 4px 8px rgba(0, 0, 0, 0.2)";
+        popup.style.borderRadius = "10px";
+        popup.style.zIndex = "1000";
+        popup.style.textAlign = "center";
 
-      async function getEmployeeDetails() {
-        const empID = parseInt(document.getElementById("employeeID").value);
+        // Add message to the popup
+        popup.innerHTML = `
+    <p>Wait for the next Time sheet</p>
+    <p>انتظر الجدول الزمني التالي</p>
+    <button onclick="closePopup(this)">Close</button>
+  `;
 
-        if (!empID) {
-          document.getElementById("errorMessage").innerHTML =
-            "Please enter an Employee ID!";
-          clearTables();
-          return;
-        }
-
-        if (!trackSearches(empID)) {
-          document.getElementById("errorMessage").innerHTML =
-            "You have exceeded the limit of 2 searches!";
-          clearTables();
-          return;
-        }
-
-        const employees = await fetchEmployeeData();
-        const result = employees.find((emp) => emp.ID === empID);
-
-        if (result) {
-          displaySummaryData(result);
-          displayDailyData(result);
-          document.getElementById("errorMessage").innerHTML = "";
-        } else {
-          document.getElementById("errorMessage").innerHTML =
-            "Employee not found!";
-          clearTables();
-        }
+        // Append the popup to the body
+        document.body.appendChild(popup);
       }
+
+      function closePopup(button) {
+        // Remove the popup when the close button is clicked
+        const popup = button.parentElement;
+        popup.remove();
+      }
+
+      // async function getEmployeeDetails() {
+      //   const empID = parseInt(document.getElementById("employeeID").value);
+
+      //   if (!empID) {
+      //     document.getElementById("errorMessage").innerHTML =
+      //       "Please enter an Employee ID!";
+      //     clearTables();
+      //     return;
+      //   }
+
+      //   if (!trackSearches(empID)) {
+      //     document.getElementById("errorMessage").innerHTML =
+      //       "You have exceeded the limit of 2 searches!";
+      //     clearTables();
+      //     return;
+      //   }
+
+      //   const employees = await fetchEmployeeData();
+      //   const result = employees.find((emp) => emp.ID === empID);
+
+      //   if (result) {
+      //     displaySummaryData(result);
+      //     displayDailyData(result);
+      //     document.getElementById("errorMessage").innerHTML = "";
+      //   } else {
+      //     document.getElementById("errorMessage").innerHTML =
+      //       "Employee not found!";
+      //     clearTables();
+      //   }
+      // }
 
       function displaySummaryData(employee) {
         const tableBody = document
